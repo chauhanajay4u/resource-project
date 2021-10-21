@@ -28,7 +28,7 @@ class UserRegistrationService(object):
         user_info["name"] = data.get("name").title()
         user_info["role"] = role
         user_info["city"] = data.get("city")
-        user_info["resource_limit"] = 0 if role != "admin" else None
+        user_info["resource_limit"] = None
         user_info["country"] = data.get("country")
         user_info["password_hash"] = self.hash_password(data.get("password"))
 

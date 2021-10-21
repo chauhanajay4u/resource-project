@@ -1,3 +1,4 @@
 env/
 *.sublime-project
 *.sublime-workspace
+*.sqlite3
