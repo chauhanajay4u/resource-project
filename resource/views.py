@@ -8,9 +8,14 @@ from user.decorators import session_authorize, catch_exception
 from user.services.filter_service import FilterService
 from . import models
 from user.utils import NotAcceptableError
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework.parsers import MultiPartParser
 
 
 class AdminUserResource(GenericAPIView):
+
+    parser_classes = [MultiPartParser]
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -41,6 +46,27 @@ class AdminUserResource(GenericAPIView):
 
     @catch_exception()
     @session_authorize("admin_id")
+    @swagger_auto_schema(manual_parameters=[openapi.Parameter(
+        name='user_id', in_="query",
+        type=openapi.TYPE_INTEGER,
+        description="User ID to filter user resource"
+    ), openapi.Parameter(
+        name='type', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Filter based on type of resource"
+    ), openapi.Parameter(
+        name='page', in_="query",
+        type=openapi.TYPE_INTEGER,
+        description="Page"
+    ), openapi.Parameter(
+        name='page_size', in_="query",
+        type=openapi.TYPE_INTEGER,
+        description="No of results on each page"
+    ), openapi.Parameter(
+        name='sort', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Sort based on id, user_id, name (use '-' for desc)"
+    )])
     def get(self, request, auth_data):
         """Get User List API"""
         if auth_data.get("authorized") and auth_data.get("is_admin"):
@@ -75,6 +101,11 @@ class AdminUserResource(GenericAPIView):
 
     @catch_exception()
     @session_authorize(user_id_key="admin_id")
+    @swagger_auto_schema(manual_parameters=[openapi.Parameter(
+        name='resource_id', in_="query",
+        type=openapi.TYPE_INTEGER, required=True,
+        description="Resource ID to delete"
+    )])
     def delete(self, request, auth_data):
         """Delete User"""
         if auth_data.get("authorized") and auth_data.get("is_admin"):
@@ -85,13 +116,15 @@ class AdminUserResource(GenericAPIView):
             if resource:
                 resource.delete()
                 return Response({"message": "User Resource Deleted Successfully"}, 
-                    status=status.HTTP_200_OK)
+                    status=status.HTTP_204_NO_CONTENT)
             return Response({'error': 'Resource Not Found'},
                             status=status.HTTP_404_NOT_FOUND)
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class UserResource(GenericAPIView):
+
+    parser_classes = [MultiPartParser]
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -124,6 +157,23 @@ class UserResource(GenericAPIView):
 
     @catch_exception()
     @session_authorize("user_id")
+    @swagger_auto_schema(manual_parameters=[openapi.Parameter(
+        name='type', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Filter based on type of resource"
+    ), openapi.Parameter(
+        name='page', in_="query",
+        type=openapi.TYPE_INTEGER,
+        description="Page"
+    ), openapi.Parameter(
+        name='page_size', in_="query",
+        type=openapi.TYPE_INTEGER,
+        description="No of results on each page"
+    ), openapi.Parameter(
+        name='sort', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Sort based on id, name (use '-' for desc)"
+    )])
     def get(self, request, auth_data):
         """Get User List API"""
         if auth_data.get("authorized"):
@@ -158,6 +208,11 @@ class UserResource(GenericAPIView):
 
     @catch_exception()
     @session_authorize(user_id_key="user_id")
+    @swagger_auto_schema(manual_parameters=[openapi.Parameter(
+        name='resource_id', in_="query",
+        type=openapi.TYPE_INTEGER, required=True,
+        description="Resource ID to delete"
+    )])
     def delete(self, request, auth_data):
         """Delete User"""
         if auth_data.get("authorized"):
@@ -170,7 +225,7 @@ class UserResource(GenericAPIView):
             if resource:
                 resource.delete()
                 return Response({"message": "Resource Deleted Successfully"}, 
-                    status=status.HTTP_200_OK)
+                    status=status.HTTP_204_NO_CONTENT)
             return Response({'error': 'Resource Not Found'},
                             status=status.HTTP_404_NOT_FOUND)
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)

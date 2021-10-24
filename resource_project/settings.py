@@ -111,6 +111,8 @@ SWAGGER_SETTINGS = {
             'name': 'Session-Token'
         }
     },
+    'USE_SESSION_AUTH': False,
+    'PERSIST_AUTH': True,
 }
 
 # Internationalization

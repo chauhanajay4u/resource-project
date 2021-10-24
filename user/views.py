@@ -7,13 +7,16 @@ from user.utils import error_wrapper
 from user.decorators import session_authorize, catch_exception
 from user.services.filter_service import FilterService
 from user import models
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework.parsers import MultiPartParser
 
 # Create your views here.
 
 
 
 class UserLogin(GenericAPIView):
-    """Login for User"""
+    """Login for User/Admin"""
 
     serializer_class = serializers.UserLoginSerializer
 
@@ -29,6 +32,7 @@ class UserLogin(GenericAPIView):
 
 
 class UserLogout(GenericAPIView):
+    """Logout for User/Admin"""
 
     serializer_class = serializers.UserLogoutSerializer
 
@@ -68,6 +72,8 @@ class UserRegistration(GenericAPIView):
 
 class AdminUser(GenericAPIView):
 
+    parser_classes = [MultiPartParser]
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return serializers.UserListSerializer
@@ -76,7 +82,7 @@ class AdminUser(GenericAPIView):
     @catch_exception()
     @session_authorize(user_id_key="admin_id")
     def post(self, request, auth_data):
-        """Post details to create new User"""
+        """create new User"""
         if auth_data.get("authorized") and auth_data.get("is_admin"):
             serializer = serializers.UserRegistrationSerializer(
                 data=request.data)
@@ -94,8 +100,49 @@ class AdminUser(GenericAPIView):
 
     @catch_exception()
     @session_authorize("admin_id")
+    @swagger_auto_schema(manual_parameters=[openapi.Parameter(
+        name='id', in_="query",
+        type=openapi.TYPE_INTEGER,
+        description="User ID to filter user"
+    ), openapi.Parameter(
+        name='name', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Filter based on name of user"
+    ), openapi.Parameter(
+        name='phone', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Filter based on phone of user"
+    ), openapi.Parameter(
+        name='email', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Filter based on email of user"
+    ), openapi.Parameter(
+        name='role', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Filter based on role of user"
+    ), openapi.Parameter(
+        name='city', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Filter based on city of user"
+    ), openapi.Parameter(
+        name='country', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Filter based on country of user"
+    ), openapi.Parameter(
+        name='page', in_="query",
+        type=openapi.TYPE_INTEGER,
+        description="Page"
+    ), openapi.Parameter(
+        name='page_size', in_="query",
+        type=openapi.TYPE_INTEGER,
+        description="No of results on each page"
+    ), openapi.Parameter(
+        name='sort', in_="query",
+        type=openapi.TYPE_STRING,
+        description="Sort based on above parameters (use '-' for desc)"
+    )])
     def get(self, request, auth_data):
-        """Get User List API"""
+        """User List API"""
         if auth_data.get("authorized") and auth_data.get("is_admin"):
             queryset = self.get_queryset()
 
@@ -134,7 +181,7 @@ class AdminModifyUser(GenericAPIView):
     @catch_exception()
     @session_authorize(user_id_key="admin_id")
     def delete(self, request, auth_data, user_id):
-        """Delete User"""
+        """Delete User by admin"""
         if auth_data.get("authorized") and auth_data.get("is_admin"):
             user = models.User.objects.filter(id=user_id)
             if user:
@@ -148,7 +195,7 @@ class AdminModifyUser(GenericAPIView):
     @catch_exception()
     @session_authorize(user_id_key="admin_id")
     def patch(self, request, auth_data, user_id):
-        """Post details to create new User"""
+        """Update resource limit for user"""
         if auth_data.get("authorized") and auth_data.get("is_admin"):
             serializer = serializers.AdminModifyUserSerializer(
                 data=request.data)

@@ -1,5 +1,6 @@
 """All Filtering Services"""
 from user import models
+from resource.models import Resources
 
 
 class FilterService(object):
@@ -74,7 +75,8 @@ class FilterService(object):
         # filter by type
         type = request.query_params.get("type")
         if type:
-            queryset = queryset.filter(type__icontains=type)
+            type_keys = [x for x, y in Resources.TYPE_CHOICES if type.upper() in y]
+            queryset = queryset.filter(type__in=type_keys)
 
         # sort by
         sort = request.query_params.get('sort', None)
