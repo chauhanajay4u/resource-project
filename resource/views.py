@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import  status
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from . import serializers
 from user.utils import error_wrapper
 from user.decorators import session_authorize, catch_exception
@@ -10,7 +10,14 @@ from . import models
 from user.utils import NotAcceptableError
 
 
-class AdminUserResource(APIView):
+class AdminUserResource(GenericAPIView):
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return serializers.AdminResourceListSerializer
+        elif self.request.method == 'POST':
+            return serializers.AdminCreateUserResourceSerializer
+        return None
 
     @catch_exception()
     @session_authorize(user_id_key="admin_id")
@@ -84,7 +91,14 @@ class AdminUserResource(APIView):
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class UserResource(APIView):
+class UserResource(GenericAPIView):
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return serializers.UserResourceListSerializer
+        elif self.request.method == 'POST':
+            return serializers.CreateUserResourceSerializer
+        return None
 
     @catch_exception()
     @session_authorize(user_id_key="user_id")

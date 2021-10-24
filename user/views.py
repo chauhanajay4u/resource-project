@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import  status
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from . import serializers
 from user.utils import error_wrapper
 from user.decorators import session_authorize, catch_exception
@@ -12,8 +12,11 @@ from user import models
 
 
 
-class UserLogin(APIView):
+class UserLogin(GenericAPIView):
     """Login for User"""
+
+    serializer_class = serializers.UserLoginSerializer
+
     @catch_exception()
     def post(self, request):
         serializer = serializers.UserLoginSerializer(data=request.data)
@@ -25,7 +28,10 @@ class UserLogin(APIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserLogout(APIView):
+class UserLogout(GenericAPIView):
+
+    serializer_class = serializers.UserLogoutSerializer
+
     @catch_exception()
     @session_authorize(user_id_key="user_id")
     def post(self, request, auth_data):
@@ -43,8 +49,11 @@ class UserLogout(APIView):
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class UserRegistration(APIView):
+class UserRegistration(GenericAPIView):
     """Sign Up API for User"""
+
+    serializer_class = serializers.UserRegistrationSerializer
+
     @catch_exception()
     def post(self, request):
         """Post User details"""
@@ -57,7 +66,12 @@ class UserRegistration(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class AdminUser(APIView):
+class AdminUser(GenericAPIView):
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return serializers.UserListSerializer
+        return serializers.UserRegistrationSerializer
 
     @catch_exception()
     @session_authorize(user_id_key="admin_id")
@@ -113,7 +127,9 @@ class AdminUser(APIView):
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class AdminModifyUser(APIView):
+class AdminModifyUser(GenericAPIView):
+
+    serializer_class = serializers.AdminModifyUserSerializer
 
     @catch_exception()
     @session_authorize(user_id_key="admin_id")
